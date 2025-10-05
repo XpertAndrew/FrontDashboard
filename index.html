@@ -3,49 +3,63 @@
 <head>
     <script type="text/javascript" src="https://dl.frontapp.com/libs/plugin-sdk-1.8.1.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; }
-        iframe { border: none; width: 100%; height: 100vh; }
-        #content { height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .message { padding: 20px; text-align: center; color: #666; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: Arial, sans-serif; 
+            overflow: hidden;
+        }
+        iframe { 
+            border: none;
+            width: 100%;
+            height: 100vh;
+        }
+        #content { 
+            height: 100vh; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .message {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
     </style>
 </head>
 <body>
-    <div id="content"><div class="message">Loading...</div></div>
+    <div id="content">
+        <div class="message">Loading...</div>
+    </div>
     
     <script>
         Front.contextUpdates.subscribe(context => {
-            console.log('Full context:', context);
+            console.log('Context received:', context);
             
             if (context.type === 'singleConversation') {
                 const conversation = context.conversation;
                 console.log('Links:', conversation.links);
-                console.log('Topics:', conversation.topics);
                 
-                // Log everything to see where Dashboard View is
-                console.log('Full conversation object:', JSON.stringify(conversation, null, 2));
-                
-                // Try to find Dashboard View in links
+                // Find the "Dashboard View URL" link
                 const dashboardLink = conversation.links?.find(link => 
-                    link.name === 'Dashboard View'
+                    link.name === 'Dashboard View URL'
                 );
                 
-                // Try to find it in topics (older API)
-                const dashboardTopic = conversation.topics?.find(topic => 
-                    topic.name === 'Dashboard View'
-                );
-                
-                const dashboardUrl = dashboardLink?.externalUrl || dashboardTopic?.externalUrl;
-                
-                if (dashboardUrl) {
+                if (dashboardLink && dashboardLink.externalUrl) {
+                    console.log('Dashboard View URL found:', dashboardLink.externalUrl);
+                    
+                    // Display the dashboard in an iframe
                     document.getElementById('content').innerHTML = 
-                        `<iframe src="${dashboardUrl}"></iframe>`;
+                        `<iframe src="${dashboardLink.externalUrl}"></iframe>`;
                 } else {
                     document.getElementById('content').innerHTML = 
                         `<div class="message">
-                            <p>Dashboard View not found</p>
-                            <p><small>Check console for full data structure</small></p>
+                            <p>No dashboard found for this loan</p>
                         </div>`;
                 }
+            } else if (context.type === 'noConversation') {
+                document.getElementById('content').innerHTML = 
+                    `<div class="message"><p>Select a conversation to view the dashboard</p></div>`;
             }
         });
     </script>
